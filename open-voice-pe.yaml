@@ -1,6 +1,6 @@
 ###### SUBSTITUTIONS ######
 substitutions:
-  name: open-voice-pe
+  name: home-assistant-voice
   friendly_name: "Open Voice PE"
   version: "1.0.0"
   api_encryption_key: !secret api_encryption_key_open_voice_pe
@@ -50,7 +50,7 @@ esp32:
   flash_size: 16MB
   framework:
     type: esp-idf
-    version: 5.1.5
+    version: recommended
     sdkconfig_options:
       CONFIG_ESP32S3_DEFAULT_CPU_FREQ_240: y
       CONFIG_ESP32S3_DATA_CACHE_64KB: y
@@ -122,11 +122,10 @@ ota:
 
 ###### I2C ######
 i2c:
-  id: internal_i2c
-  sda: 5
-  scl: 6
-  frequency: 400kHz
-  scan: true
+  - id: internal_i2c
+    sda: GPIO5
+    scl: GPIO6
+    frequency: 400kHz
 
 ###### PSRAM ######
 psram:
@@ -1458,19 +1457,16 @@ external_components:
 
 ###### MICROPHONE ######
 microphone:
-  - platform: nabu_microphone
-    i2s_din_pin: 15
+  - platform: i2s_audio
+    id: i2s_mics
+    i2s_din_pin: GPIO15
+    adc_type: external
+    pdm: false
     sample_rate: 16000
     bits_per_sample: 32bit
     i2s_mode: secondary
     i2s_audio_id: i2s_input
-    adc_type: external
-    pdm: false
-    channel_0:
-      id: asr_mic
-    channel_1:
-      id: comm_mic
-      amplify_shift: 2
+    channel: stereo
 
 ###### SPEAKER ######
 speaker:
@@ -1655,7 +1651,7 @@ audio_dac:
 ###### VOICE_ASSISTANT ######
 voice_assistant:
   id: va
-  microphone: asr_mic
+  microphone: i2s_mics
   use_wake_word: true
   noise_suppression_level: 0
   auto_gain: 0dBFS
