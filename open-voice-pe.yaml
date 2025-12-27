@@ -1,11 +1,5 @@
-###### SUBSTITUTIONS ######
 substitutions:
-  name: home-assistant-voice
-  friendly_name: "Open Voice PE"
   version: "1.0.0"
-  api_encryption_key: !secret api_encryption_key_open_voice_pe
-  wifi_ssid: !secret wifi_ssid
-  wifi_password: !secret wifi_password
   wake_word_engine: "openWakeWord"
 
 ###### ESPHOME ######
@@ -82,11 +76,6 @@ wifi:
   enable_rrm: false
   passive_scan: false
   enable_on_boot: true
-  networks:
-    - ssid: ${wifi_ssid}
-      password: ${wifi_password}
-      priority: 0.0
-  use_address: ${name}.local
 
 ###### LOGGER ######
 logger:
