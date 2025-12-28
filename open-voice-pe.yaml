@@ -164,10 +164,10 @@ globals:
   - id: assist_just_started
     type: bool
     initial_value: 'false'
-  - id: tts_target_media_player
+  - id: tts_target_satellite
     type: std::string
     restore_value: true
-    initial_value: '"media_player.none"'
+    initial_value: '"assist_satellite.none"'
   - id: voice_assistant_enabled_state
     type: bool
     restore_value: true
@@ -176,26 +176,25 @@ globals:
 ###### SELECT ######
 select:
   - platform: template
-    name: "TTS target media player"
-    id: tts_target_media_player_select
+    name: "TTS target satellite"
+    id: tts_target_satellite_select
     options:
-      - "media_player.home_assistant_voice_09d508_media_player"
-      - "media_player.vlc_telnet"
-      - "media_player.woonkamer_2"
-      - "media_player.chromecast8906"
+      - "assist_satellite.bedroom_announce_satellite"
+      - "assist_satellite.kitchen_announce_satellite"
+      - "assist_satellite.none"
     restore_value: true
     entity_category: config
     optimistic: true
     on_value:
       then:
         - lambda: |-
-            id(tts_target_media_player) = x;
+            id(tts_target_satellite) = x;
         - logger.log:
-            format: "TTS target media player set to: %s"
+            format: "TTS target satellite set to: %s"
             args: [ x.c_str() ]
             level: DEBUG
         - globals.set:
-            id: tts_target_media_player
+            id: tts_target_satellite
             value: !lambda return x;
 
 ###### SWITCH ######
@@ -1716,47 +1715,28 @@ voice_assistant:
     - script.execute: activate_stop_word_if_tts_step_is_long
   on_tts_end:
     - logger.log:
-        format: "TTS Target Media Player value: %s"
-        args: [id(tts_target_media_player).c_str()]
-        level: DEBUG
-    - logger.log:
-        format: "Condition result for remote playback: %d"
-        args: [id(tts_target_media_player) != "media_player.none"]
+        format: "TTS target satellite: %s"
+        args: [id(tts_target_satellite).c_str()]
         level: DEBUG
     - media_player.stop:
         id: external_media_player
         announcement: true
     - if:
         condition:
-          lambda: return id(tts_target_media_player) != "media_player.none";
+          lambda: return id(tts_target_satellite) != "assist_satellite.none";
         then:
           - logger.log:
-              format: "Routing TTS to remote media player: %s"
-              args: [id(tts_target_media_player).c_str()]
+              format: "Routing TTS to satellite: %s"
+              args: [id(tts_target_satellite).c_str()]
               level: DEBUG
-          - homeassistant.service:
-              service: media_player.play_media
+          - homeassistant.action:
+              action: script.assist_satellite_announce
               data:
-                entity_id: !lambda return id(tts_target_media_player);
-                media_content_id: !lambda return x;
-                media_content_type: music
-                announce: "true"
+                target_satellite_entity_id: !lambda return id(tts_target_satellite);
+                media_id: !lambda return x;
           - logger.log:
-              format: "Sent TTS to remote media player with URL"
+              format: "Sent TTS to satellite"
               level: DEBUG
-          - delay: 10s
-          - logger.log:
-              format: "Checking external playback success for %s"
-              args: [id(tts_target_media_player).c_str()]
-              level: DEBUG
-          - if:
-              condition:
-                lambda: return false;  # Placeholder
-              then:
-                - logger.log:
-                    format: "External playback failed for %s"
-                    args: [id(tts_target_media_player).c_str()]
-                    level: ERROR
           - voice_assistant.stop
           - delay: 1s
           - lambda: id(voice_assistant_phase) = 1; id(assist_just_started) = false;
@@ -1764,8 +1744,8 @@ voice_assistant:
           - logger.log:
               format: "Playing TTS locally on VPE"
               level: DEBUG
-          - homeassistant.service:
-              service: media_player.play_media
+          - homeassistant.action:
+              action: media_player.play_media
               data:
                 entity_id: "media_player.external_media_player"
                 media_content_id: !lambda return x;
@@ -1846,3 +1826,4 @@ button:
 ###### DEBUG ######
 debug:
   update_interval: 5s
+
