@@ -1,16 +1,13 @@
 ---
 substitutions:
-  name: voice-pe-demo
+  name: voice-pe-demo # must match file name
   friendly_name: voice-pe-demo
-  log_level: INFO
   wifi_static_ip: 10.8.60.54
   api_encryption_key: !secret api_encryption_key
   wifi_ssid: !secret wifi_ssid
   wifi_password: !secret wifi_password
 
 packages:
-  # Nabu Casa.Home Assistant Voice PE: github://esphome/home-assistant-voice-pe/home-assistant-voice.yaml@dev
-  # Open Voice.PE Custom: github://bmcwilliams96/open-voice-pe-custom/open-voice-pe.yaml@main
   - !include ./open-voice-pe.yaml
 
 wifi:
@@ -25,3 +22,15 @@ wifi:
         subnet: 255.255.254.0
         dns1: 10.8.60.1
   use_address: ${wifi_static_ip}
+
+# Per-device TTS targets. The lists are appended to the package defaults.
+select:
+  - id: !extend tts_target_satellite
+    options:
+      - assist_satellite.kitchen_announce_satellite_assist_satellite
+      - assist_satellite.bedroom_announce_satellite_assist_satellite
+
+  - id: !extend tts_target_media_player
+    options:
+      - media_player.kitchen_announce_satellite_media_player
+      - media_player.bedroom_announce_satellite_media_player
