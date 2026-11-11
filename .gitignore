@@ -2,3 +2,5 @@ secrets.yaml
 .esphome
 extra/
 .direnv/
+.claude
+.mcp.json
